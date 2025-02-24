@@ -1,0 +1,120 @@
+{
+    "name": "My workflow",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "3515e551-3054-4a14-b3e7-f94d5887f0dd",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          0,
+          0
+        ],
+        "id": "e2f190a1-484e-4e18-a04c-75515a3be03a",
+        "name": "Webhook",
+        "webhookId": "3515e551-3054-4a14-b3e7-f94d5887f0dd"
+      },
+      {
+        "parameters": {
+          "url": "https://api.openweathermap.org/data/2.5/forecast?q={{$json[\"city\"]}}&appid=YOUR_OPENWEATHER_API_KEY&units=metric",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          220,
+          0
+        ],
+        "id": "e087814e-3e9c-4a56-bd80-5eb89635fc1f",
+        "name": "HTTP Request"
+      },
+      {
+        "parameters": {
+          "jsCode": "const forecast = $json[\"list\"];\nconst highRiskDays = [];\n\nforecast.forEach(day => {\n    const precipitationChance = day.pop;\n    const rainfall = day.rain ? day.rain[\"3h\"] : 0;\n\n    if (precipitationChance > 0.7 || rainfall > 50) {\n        highRiskDays.push(day.dt_txt);\n    }\n});\n\nreturn [{ json: { highRiskDays } }];\n"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          440,
+          0
+        ],
+        "id": "039d9e1e-55b7-4d52-8a05-af62619a6521",
+        "name": "Code"
+      },
+      {
+        "parameters": {
+          "fromEmail": "abhijeetyadav210104@gmail.com",
+          "toEmail": "abhijeetyadav21104@gmail.com",
+          "subject": "=\"🚨 Flood Alert in {{ $json[\"city\"] }}\"",
+          "emailFormat": "both",
+          "text": "=Warning! High flood risk in {{ $json[\"city\"] }} on the following dates: \n{{ $json[\"highRiskDays\"] }}\n",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.emailSend",
+        "typeVersion": 2.1,
+        "position": [
+          660,
+          0
+        ],
+        "id": "5584530d-66da-4229-8b5b-6b0f196bc4bc",
+        "name": "Send Email",
+        "webhookId": "80c49ed4-43ae-49a1-89e9-2c1fb98e0df2",
+        "credentials": {
+          "smtp": {
+            "id": "2GcPnEhiLSzdYJr3",
+            "name": "SMTP account"
+          }
+        }
+      }
+    ],
+    "pinData": {},
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "HTTP Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP Request": {
+        "main": [
+          [
+            {
+              "node": "Code",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code": {
+        "main": [
+          [
+            {
+              "node": "Send Email",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "active": true,
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "versionId": "b615e176-9c56-46c9-bb38-41fb9701004e",
+    "meta": {
+      "templateCredsSetupCompleted": true,
+      "instanceId": "84cbdc4fbf9f411690376208e52bf2820257cdf48594d195868d1d0c2df33fbc"
+    },
+    "id": "dAVvf3hse34N4oEQ",
+    "tags": []
+  }

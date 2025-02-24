@@ -1,0 +1,44 @@
+{
+    "nodes": [
+      {
+        "parameters": {
+          "path": "3515e551-3054-4a14-b3e7-f94d5887f0dd",
+          "methods": ["POST"],
+          "responseCode": 200
+        },
+        "name": "Receive City Input",
+        "type": "n8n-nodes-base.webhook",
+        "position": [200, 300]
+      },
+      {
+        "parameters": {
+          "url": "https://api.openweathermap.org/data/2.5/forecast?q={{$json[\"body\"][\"city\"]}}&appid=bd5e378503939ddaee76f12ad7a97608&units=metric",
+          "method": "GET",
+          "responseFormat": "json"
+        },
+        "name": "Get Weather Data",
+        "type": "n8n-nodes-base.httpRequest",
+        "position": [400, 300]
+      },
+      {
+        "parameters": {
+          "functionCode": "const forecast = $json[\"list\"];\nconst highRiskDays = forecast.filter(day => day.pop > 0.7 || (day.rain && day.rain[\"3h\"] > 50));\nreturn [{ json: { highRiskDays } }];"
+        },
+        "name": "Analyze Risk",
+        "type": "n8n-nodes-base.function",
+        "position": [600, 300]
+      },
+      {
+        "parameters": {
+          "fromEmail": "abhijeetyadav210104@gmail.com",
+          "toEmail": "abhijeetyadav21104@gmail.com",
+          "subject": "🚨 Flood Alert",
+          "text": "Flood risk detected in {{$json[\"body\"][\"city\"]}}!"
+        },
+        "name": "Send Alert Email",
+        "type": "n8n-nodes-base.emailSend",
+        "position": [800, 300]
+      }
+    ]
+  }
+  
